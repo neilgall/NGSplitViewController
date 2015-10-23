@@ -12,6 +12,8 @@
 		284E51321BDA98AC00246375 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 284E51301BDA98AC00246375 /* Main.storyboard */; };
 		284E51341BDA98AC00246375 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 284E51331BDA98AC00246375 /* Assets.xcassets */; };
 		284E51371BDA98AC00246375 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 284E51351BDA98AC00246375 /* LaunchScreen.storyboard */; };
+		284E51401BDAC5EA00246375 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284E513E1BDAC5EA00246375 /* MasterViewController.swift */; };
+		284E51411BDAC5EA00246375 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284E513F1BDAC5EA00246375 /* DetailViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +24,8 @@
 		284E51331BDA98AC00246375 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		284E51361BDA98AC00246375 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		284E51381BDA98AC00246375 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		284E513E1BDAC5EA00246375 /* MasterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
+		284E513F1BDAC5EA00246375 /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +60,8 @@
 			children = (
 				284E512C1BDA98AC00246375 /* AppDelegate.swift */,
 				284E512E1BDA98AC00246375 /* NGSplitViewController.swift */,
+				284E513E1BDAC5EA00246375 /* MasterViewController.swift */,
+				284E513F1BDAC5EA00246375 /* DetailViewController.swift */,
 				284E51301BDA98AC00246375 /* Main.storyboard */,
 				284E51331BDA98AC00246375 /* Assets.xcassets */,
 				284E51351BDA98AC00246375 /* LaunchScreen.storyboard */,
@@ -137,6 +143,8 @@
 			files = (
 				284E512F1BDA98AC00246375 /* NGSplitViewController.swift in Sources */,
 				284E512D1BDA98AC00246375 /* AppDelegate.swift in Sources */,
+				284E51401BDAC5EA00246375 /* MasterViewController.swift in Sources */,
+				284E51411BDAC5EA00246375 /* DetailViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,6 +294,7 @@
 				284E513D1BDA98AC00246375 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

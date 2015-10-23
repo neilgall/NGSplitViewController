@@ -17,7 +17,7 @@ import UIKit
 
 public class NGSplitViewController: UIViewController {
 
-    public var masterViewController: UIViewController? {
+    @IBOutlet public var masterViewController: UIViewController? {
         willSet {
             removeChild(masterViewController)
         }
@@ -26,7 +26,7 @@ public class NGSplitViewController: UIViewController {
         }
     }
     
-    public var detailViewController: UIViewController? {
+    @IBOutlet public var detailViewController: UIViewController? {
         willSet {
             removeChild(detailViewController)
         }
@@ -37,7 +37,7 @@ public class NGSplitViewController: UIViewController {
     
     public var splitRatio: CGFloat = 0.333 {
         didSet {
-            view.layoutSubviews()
+            view.setNeedsLayout()
         }
     }
     
@@ -47,13 +47,18 @@ public class NGSplitViewController: UIViewController {
     private var detailContainer: UIView?
     private var overlayHideButton: UIButton?
     
-    private enum PresentationStyle {
+    private enum MasterPresentationStyle {
         case Hidden
         case Showing
         case Overlay
     }
     
-    private var masterPresentationStyle: PresentationStyle = .Hidden {
+    private enum DetailPresentationStyle {
+        case Hidden
+        case Showing
+    }
+    
+    private var masterPresentationStyle: MasterPresentationStyle = .Hidden {
         didSet {
             guard let container = masterContainer, let master = masterViewController else {
                 return
@@ -61,24 +66,28 @@ public class NGSplitViewController: UIViewController {
             switch masterPresentationStyle {
             
             case .Hidden:
-                masterContainer?.removeFromSuperview()
                 delegate?.splitViewController?(self, willHideMasterViewController: master)
+                masterContainer?.removeFromSuperview()
+                overlayHideButton?.removeFromSuperview()
 
             case .Showing:
+                delegate?.splitViewController?(self, willShowMasterViewController: master)
                 if container.superview !== view {
                     view.addSubview(container)
                 }
-                delegate?.splitViewController?(self, willShowMasterViewController: master)
+                overlayHideButton?.removeFromSuperview()
 
             case .Overlay:
                 if container.superview !== view {
                     view.addSubview(container)
                 }
             }
+            
+            view.setNeedsLayout()
         }
     }
     
-    private var detailPresentationStyle: PresentationStyle = .Hidden {
+    private var detailPresentationStyle: DetailPresentationStyle = .Hidden {
         didSet {
             guard let container = detailContainer, detail = detailViewController else {
                 return
@@ -86,18 +95,17 @@ public class NGSplitViewController: UIViewController {
             switch detailPresentationStyle {
                 
             case .Hidden:
-                container.removeFromSuperview()
                 delegate?.splitViewController?(self, willHideDetailViewController: detail)
+                container.removeFromSuperview()
 
             case .Showing:
+                delegate?.splitViewController?(self, willShowDetailViewController: detail)
                 if container.superview !== view {
                     view.addSubview(container)
                 }
-                delegate?.splitViewController?(self, willShowDetailViewController: detail)
-            
-            case .Overlay:
-                abort()
             }
+            
+            view.setNeedsLayout()
         }
     }
 
@@ -120,11 +128,13 @@ public class NGSplitViewController: UIViewController {
         super.viewWillAppear(animated)
         updatePresentationStyle()
         updateFrames()
+        updateChildTraitCollections()
     }
     
     public override func traitCollectionDidChange(previousTraitCollection: UITraitCollection?) {
         updatePresentationStyle()
-        view.layoutSubviews()
+        updateChildTraitCollections()
+        view.setNeedsLayout()
     }
     
     public override func viewWillLayoutSubviews() {
@@ -146,7 +156,7 @@ public class NGSplitViewController: UIViewController {
             case .Showing:
                 masterFrame = view.bounds
             case .Overlay:
-                masterFrame = view.bounds.divide(splitRatio).left
+                masterFrame = CGRectMake(0, 0, 320, view.bounds.size.height)
             }
             
             switch detailPresentationStyle {
@@ -154,8 +164,6 @@ public class NGSplitViewController: UIViewController {
                 break
             case .Showing:
                 detailFrame = view.bounds
-            case .Overlay:
-                abort()
             }
         }
         
@@ -172,7 +180,7 @@ public class NGSplitViewController: UIViewController {
         child.view.frame = container.bounds
         container.addSubview(child.view)
         child.didMoveToParentViewController(self)
-        view.layoutSubviews()
+        view.setNeedsLayout()
     }
 
     private func removeChild(childViewController: UIViewController?) {
@@ -204,7 +212,21 @@ public class NGSplitViewController: UIViewController {
         }
     }
     
-    public func revealMasterViewController() {
+    private func updateChildTraitCollections() {
+        let compact = UITraitCollection(horizontalSizeClass: .Compact)
+        
+        if let master = masterViewController {
+            let masterTraitCollection = UITraitCollection(traitsFromCollections: [traitCollection, compact])
+            setOverrideTraitCollection(masterTraitCollection, forChildViewController: master)
+        }
+        
+        if let detail = detailViewController {
+            let detailTraitCollection = UITraitCollection(traitsFromCollections: [traitCollection, compact])
+            setOverrideTraitCollection(detailTraitCollection, forChildViewController: detail)
+        }
+    }
+    
+    public func overlayMasterViewController() {
         guard masterPresentationStyle == .Hidden, let detailContainer = detailContainer else {
             return
         }
@@ -217,19 +239,24 @@ public class NGSplitViewController: UIViewController {
 
         overlayHideButton = button
         masterPresentationStyle = .Overlay
-
-        view.layoutSubviews()
+        
+        if traitCollection.horizontalSizeClass == .Compact && view.bounds.size.width <= 320 {
+            detailPresentationStyle = .Hidden
+        }
     }
     
     func overlayHideButtonTapped() {
         guard masterPresentationStyle == .Overlay else {
             return
         }
-        
-        overlayHideButton?.removeFromSuperview()
         masterPresentationStyle = .Hidden
-
-        view.layoutSubviews()
+    }
+    
+    public func dismissOverlaidMasterViewController() {
+        guard masterPresentationStyle == .Overlay else {
+            return
+        }
+        masterPresentationStyle = .Hidden
     }
 }
 

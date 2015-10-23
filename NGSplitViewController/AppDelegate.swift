@@ -17,10 +17,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, NGSplitViewControllerDele
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let split = NGSplitViewController()
+        let split = storyboard.instantiateInitialViewController() as! NGSplitViewController
         split.delegate = self
         split.masterViewController = storyboard.instantiateViewControllerWithIdentifier("masterNavigationController")
         split.detailViewController = storyboard.instantiateViewControllerWithIdentifier("detailNavigationController")
+        
+        ((split.masterViewController as! UINavigationController).topViewController as! MasterViewController).ngSplitViewController = split
         
         window = UIWindow(frame:UIScreen.mainScreen().bounds)
         window!.rootViewController = split
@@ -45,7 +47,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, NGSplitViewControllerDele
     }
     
     func showMaster() {
-        splitViewController?.revealMasterViewController()
+        splitViewController?.overlayMasterViewController()
     }
     
 }
