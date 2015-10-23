@@ -17,7 +17,11 @@ import UIKit
 
 public class NGSplitViewController: UIViewController {
 
-    @IBOutlet public var masterViewController: UIViewController? {
+    public var animateOverlayDuration: NSTimeInterval = 0.3
+    
+    public var delegate: NGSplitViewControllerDelegate?
+
+    public var masterViewController: UIViewController? {
         willSet {
             removeChild(masterViewController)
         }
@@ -26,7 +30,7 @@ public class NGSplitViewController: UIViewController {
         }
     }
     
-    @IBOutlet public var detailViewController: UIViewController? {
+    public var detailViewController: UIViewController? {
         willSet {
             removeChild(detailViewController)
         }
@@ -41,8 +45,13 @@ public class NGSplitViewController: UIViewController {
         }
     }
     
-    public var delegate: NGSplitViewControllerDelegate?
-    private var overlayHideButton: UIButton?
+    private var overlayHideButton: UIButton? {
+        willSet(newValue) {
+            if newValue == nil {
+                overlayHideButton?.removeFromSuperview()
+            }
+        }
+    }
     
     private enum MasterPresentationStyle {
         case Hidden
@@ -64,19 +73,24 @@ public class NGSplitViewController: UIViewController {
             
             case .Hidden:
                 delegate?.splitViewController?(self, willHideMasterViewController: master)
-                master.view.removeFromSuperview()
-                overlayHideButton?.removeFromSuperview()
+                if overlayHideButton == nil {
+                    master.view.removeFromSuperview()
+                } else {
+                    animateOutMasterViewControllerOverlay()
+                    overlayHideButton = nil
+                }
 
             case .Showing:
                 delegate?.splitViewController?(self, willShowMasterViewController: master)
                 if master.view.superview !== view {
                     view.addSubview(master.view)
                 }
-                overlayHideButton?.removeFromSuperview()
+                overlayHideButton = nil
 
             case .Overlay:
                 if master.view.superview !== view {
                     view.addSubview(master.view)
+                    animateInMasterViewControllerOverlay()
                 }
             }
             
@@ -233,6 +247,29 @@ public class NGSplitViewController: UIViewController {
         if traitCollection.horizontalSizeClass == .Compact && view.bounds.size.width <= 320 {
             detailPresentationStyle = .Hidden
         }
+    }
+    
+    private func animateInMasterViewControllerOverlay() {
+        guard let master = masterViewController else {
+            return
+        }
+        master.view.transform = CGAffineTransformMakeTranslation(-containerFrames.master.size.width, 0)
+        UIView.animateWithDuration(animateOverlayDuration,
+            delay: 0,
+            options: .CurveEaseOut,
+            animations: { master.view.transform = CGAffineTransformIdentity },
+            completion: nil)
+    }
+    
+    private func animateOutMasterViewControllerOverlay() {
+        guard let master = masterViewController else {
+            return
+        }
+        UIView.animateWithDuration(animateOverlayDuration,
+            delay: 0,
+            options: .CurveEaseIn,
+            animations: { master.view.transform = CGAffineTransformMakeTranslation(-master.view.bounds.size.width, 0) },
+            completion: { _ in master.view.removeFromSuperview() })
     }
     
     func overlayHideButtonTapped() {
