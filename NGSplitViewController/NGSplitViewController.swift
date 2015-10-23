@@ -22,7 +22,7 @@ public class NGSplitViewController: UIViewController {
             removeChild(masterViewController)
         }
         didSet {
-            addChild(masterViewController, containerView: masterContainer)
+            addChild(masterViewController, withFrame: containerFrames.master)
         }
     }
     
@@ -31,7 +31,7 @@ public class NGSplitViewController: UIViewController {
             removeChild(detailViewController)
         }
         didSet {
-            addChild(detailViewController, containerView: detailContainer)
+            addChild(detailViewController, withFrame: containerFrames.detail)
         }
     }
     
@@ -42,9 +42,6 @@ public class NGSplitViewController: UIViewController {
     }
     
     public var delegate: NGSplitViewControllerDelegate?
-
-    private var masterContainer: UIView?
-    private var detailContainer: UIView?
     private var overlayHideButton: UIButton?
     
     private enum MasterPresentationStyle {
@@ -60,26 +57,26 @@ public class NGSplitViewController: UIViewController {
     
     private var masterPresentationStyle: MasterPresentationStyle = .Hidden {
         didSet {
-            guard let container = masterContainer, let master = masterViewController else {
+            guard let master = masterViewController else {
                 return
             }
             switch masterPresentationStyle {
             
             case .Hidden:
                 delegate?.splitViewController?(self, willHideMasterViewController: master)
-                masterContainer?.removeFromSuperview()
+                master.view.removeFromSuperview()
                 overlayHideButton?.removeFromSuperview()
 
             case .Showing:
                 delegate?.splitViewController?(self, willShowMasterViewController: master)
-                if container.superview !== view {
-                    view.addSubview(container)
+                if master.view.superview !== view {
+                    view.addSubview(master.view)
                 }
                 overlayHideButton?.removeFromSuperview()
 
             case .Overlay:
-                if container.superview !== view {
-                    view.addSubview(container)
+                if master.view.superview !== view {
+                    view.addSubview(master.view)
                 }
             }
             
@@ -89,19 +86,19 @@ public class NGSplitViewController: UIViewController {
     
     private var detailPresentationStyle: DetailPresentationStyle = .Hidden {
         didSet {
-            guard let container = detailContainer, detail = detailViewController else {
+            guard let detail = detailViewController else {
                 return
             }
             switch detailPresentationStyle {
                 
             case .Hidden:
                 delegate?.splitViewController?(self, willHideDetailViewController: detail)
-                container.removeFromSuperview()
+                detail.view.removeFromSuperview()
 
             case .Showing:
                 delegate?.splitViewController?(self, willShowDetailViewController: detail)
-                if container.superview !== view {
-                    view.addSubview(container)
+                if detail.view.superview !== view {
+                    view.addSubview(detail.view)
                 }
             }
             
@@ -111,17 +108,10 @@ public class NGSplitViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
-        masterContainer = UIView(frame: CGRectZero)
-        detailContainer = UIView(frame: CGRectZero)
-        masterContainer!.translatesAutoresizingMaskIntoConstraints = false
-        detailContainer!.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(masterContainer!)
-        view.addSubview(detailContainer!)
-        updateFrames()
-        
-        addChild(masterViewController, containerView: masterContainer)
-        addChild(detailViewController, containerView: detailContainer)
+
+        let frames = containerFrames
+        addChild(masterViewController, withFrame: frames.master)
+        addChild(detailViewController, withFrame: frames.detail)
     }
     
     public override func viewWillAppear(animated: Bool) {
@@ -170,15 +160,15 @@ public class NGSplitViewController: UIViewController {
         return (master: masterFrame.integral, detail: detailFrame.integral)
     }
 
-    private func addChild(childViewController: UIViewController?, containerView: UIView?) {
-        guard let child = childViewController, let container = containerView else {
+    private func addChild(childViewController: UIViewController?, withFrame frame: CGRect) {
+        guard let child = childViewController else {
             return
         }
         
         addChildViewController(child)
-        child.view.translatesAutoresizingMaskIntoConstraints = true
-        child.view.frame = container.bounds
-        container.addSubview(child.view)
+        child.view.translatesAutoresizingMaskIntoConstraints = false
+        child.view.frame = frame
+        view.addSubview(child.view)
         child.didMoveToParentViewController(self)
         view.setNeedsLayout()
     }
@@ -205,10 +195,10 @@ public class NGSplitViewController: UIViewController {
     private func updateFrames() {
         let frames = containerFrames
         if masterPresentationStyle != .Hidden {
-            masterContainer?.frame = frames.master
+            masterViewController?.view.frame = frames.master
         }
         if detailPresentationStyle != .Hidden {
-            detailContainer?.frame = frames.detail
+            detailViewController?.view.frame = frames.detail
         }
     }
     
@@ -227,15 +217,15 @@ public class NGSplitViewController: UIViewController {
     }
     
     public func overlayMasterViewController() {
-        guard masterPresentationStyle == .Hidden, let detailContainer = detailContainer else {
+        guard masterPresentationStyle == .Hidden else {
             return
         }
         
         let button = UIButton(type: .Custom)
         button.translatesAutoresizingMaskIntoConstraints = true
-        button.frame = detailContainer.bounds
+        button.frame = detailViewController?.view.frame ?? CGRectZero
         button.addTarget(self, action: Selector("overlayHideButtonTapped"), forControlEvents: .TouchUpInside)
-        detailContainer.addSubview(button)
+        view.addSubview(button)
 
         overlayHideButton = button
         masterPresentationStyle = .Overlay
