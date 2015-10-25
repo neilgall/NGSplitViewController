@@ -256,7 +256,7 @@ public class NGSplitViewController: UIViewController {
     }
     
     public func dismissOverlaidMasterViewController() {
-        if !presentationStyle.showsDetail {
+        if presentationStyle == .MasterOnly || presentationStyle == .MasterOverlay {
             presentationStyle = .DetailOnly
         }
     }
