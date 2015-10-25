@@ -10,10 +10,10 @@ import UIKit
 
 @objc public protocol NGSplitViewControllerDelegate {
     optional func splitViewControllerTraitCollectionChanged(splitViewController: NGSplitViewController)
-    optional func splitViewController(splitViewController: NGSplitViewController, willHideMasterViewController viewController: UIViewController)
-    optional func splitViewController(splitViewController: NGSplitViewController, willShowMasterViewController viewController: UIViewController)
-    optional func splitViewController(splitViewController: NGSplitViewController, willHideDetailViewController viewController: UIViewController)
-    optional func splitViewController(splitViewController: NGSplitViewController, willShowDetailViewController viewController: UIViewController)
+    optional func splitViewController(splitViewController: NGSplitViewController, didHideMasterViewController viewController: UIViewController)
+    optional func splitViewController(splitViewController: NGSplitViewController, didShowMasterViewController viewController: UIViewController)
+    optional func splitViewController(splitViewController: NGSplitViewController, didHideDetailViewController viewController: UIViewController)
+    optional func splitViewController(splitViewController: NGSplitViewController, didShowDetailViewController viewController: UIViewController)
 }
 
 public class NGSplitViewController: UIViewController {
@@ -24,6 +24,9 @@ public class NGSplitViewController: UIViewController {
 
     public var masterViewController: UIViewController? {
         willSet(newMasterViewController) {
+            guard isViewLoaded() else {
+                return
+            }
             if let oldVC = masterViewController, newVC = newMasterViewController {
                 crossFadeFromViewController(oldVC, toViewController: newVC)
             } else if let oldVC = masterViewController {
@@ -36,7 +39,9 @@ public class NGSplitViewController: UIViewController {
     
     public var detailViewController: UIViewController? {
         willSet(newDetailViewController) {
-            removeChild(detailViewController)
+            guard isViewLoaded() else {
+                return
+            }
             if let oldVC = detailViewController, newVC = newDetailViewController {
                 crossFadeFromViewController(oldVC, toViewController: newVC)
             } else if let oldVC = detailViewController {
@@ -76,10 +81,14 @@ public class NGSplitViewController: UIViewController {
         }
     }
     
-    private var presentationStyle: PresentationStyle = .DetailOnly {
+    private var presentationStyle: PresentationStyle = .MasterOnly {
         willSet(newStyle) {
-            notifyDelegateOfChangeFromPresentationStyle(presentationStyle, toPresentationStyle: newStyle)
             transitionFromPresentationStyle(presentationStyle, toPresentationStyle: newStyle)
+            notifyDelegateOfChangeFromPresentationStyle(presentationStyle, toPresentationStyle: newStyle)
+        }
+        didSet {
+            view.setNeedsLayout()
+            updateChildTraitCollections()
         }
     }
 
@@ -99,16 +108,16 @@ public class NGSplitViewController: UIViewController {
         
         if let master = masterViewController {
             if presentationStyle.showsMaster {
-                delegate?.splitViewController?(self, willShowMasterViewController: master)
+                delegate?.splitViewController?(self, didShowMasterViewController: master)
             } else {
-                delegate?.splitViewController?(self, willHideMasterViewController: master)
+                delegate?.splitViewController?(self, didHideMasterViewController: master)
             }
         }
         if let detail = detailViewController {
             if presentationStyle.showsDetail {
-                delegate?.splitViewController?(self, willShowDetailViewController: detail)
+                delegate?.splitViewController?(self, didShowDetailViewController: detail)
             } else {
-                delegate?.splitViewController?(self, willHideDetailViewController: detail)
+                delegate?.splitViewController?(self, didHideDetailViewController: detail)
             }
         }
     }
@@ -155,6 +164,7 @@ public class NGSplitViewController: UIViewController {
             return
         }
         
+        child.willMoveToParentViewController(self)
         addChildViewController(child)
         child.view.translatesAutoresizingMaskIntoConstraints = false
         child.view.frame = frame
@@ -168,8 +178,10 @@ public class NGSplitViewController: UIViewController {
             return
         }
         
+        child.willMoveToParentViewController(nil)
         child.view.removeFromSuperview()
         child.removeFromParentViewController()
+        child.didMoveToParentViewController(nil)
     }
     
     private func updatePresentationStyle() {
@@ -190,13 +202,21 @@ public class NGSplitViewController: UIViewController {
         let compact = UITraitCollection(horizontalSizeClass: .Compact)
         
         if let master = masterViewController {
-            let masterTraitCollection = UITraitCollection(traitsFromCollections: [traitCollection, compact])
-            setOverrideTraitCollection(masterTraitCollection, forChildViewController: master)
+            if presentationStyle == .MasterOnly {
+                setOverrideTraitCollection(traitCollection, forChildViewController: master)
+            } else {
+                let masterTraitCollection = UITraitCollection(traitsFromCollections: [traitCollection, compact])
+                setOverrideTraitCollection(masterTraitCollection, forChildViewController: master)
+            }
         }
         
         if let detail = detailViewController {
-            let detailTraitCollection = UITraitCollection(traitsFromCollections: [traitCollection, compact])
-            setOverrideTraitCollection(detailTraitCollection, forChildViewController: detail)
+            if presentationStyle == .DetailOnly || presentationStyle == .MasterOverlay {
+                setOverrideTraitCollection(traitCollection, forChildViewController: detail)
+            } else {
+                let detailTraitCollection = UITraitCollection(traitsFromCollections: [traitCollection, compact])
+                setOverrideTraitCollection(detailTraitCollection, forChildViewController: detail)
+            }
         }
     }
     
@@ -280,6 +300,7 @@ public class NGSplitViewController: UIViewController {
             case .MasterOverlay:
                 animateOutMasterViewControllerOverlay()
             case .SideBySide:
+                removeChild(master)
                 break
             case .MasterOnly:
                 detail.view.frame = containerFrames.detail
@@ -290,8 +311,10 @@ public class NGSplitViewController: UIViewController {
             
         case .MasterOnly:
             switch fromPresentationStyle {
-            case .MasterOverlay, .SideBySide:
+            case .MasterOverlay:
                 break
+            case .SideBySide:
+                removeChild(detail)
             case .DetailOnly:
                 master.view.frame = containerFrames.master
                 crossFadeFromViewController(detail, toViewController: master)
@@ -317,19 +340,19 @@ public class NGSplitViewController: UIViewController {
     private func notifyDelegateOfChangeFromPresentationStyle(fromPresentationStyle: PresentationStyle, toPresentationStyle: PresentationStyle) {
         if let master = masterViewController {
             if fromPresentationStyle.showsMaster && !toPresentationStyle.showsMaster {
-                delegate?.splitViewController?(self, willHideMasterViewController: master)
+                delegate?.splitViewController?(self, didHideMasterViewController: master)
             
             } else if !fromPresentationStyle.showsMaster && toPresentationStyle.showsMaster {
-                delegate?.splitViewController?(self, willShowMasterViewController: master)
+                delegate?.splitViewController?(self, didShowMasterViewController: master)
             }
         }
         
         if let detail = detailViewController {
             if fromPresentationStyle.showsDetail && !toPresentationStyle.showsDetail {
-                delegate?.splitViewController?(self, willHideDetailViewController: detail)
+                delegate?.splitViewController?(self, didHideDetailViewController: detail)
             
             } else if !fromPresentationStyle.showsDetail && toPresentationStyle.showsDetail {
-                delegate?.splitViewController?(self, willShowDetailViewController: detail)
+                delegate?.splitViewController?(self, didShowDetailViewController: detail)
             }
         }
     }

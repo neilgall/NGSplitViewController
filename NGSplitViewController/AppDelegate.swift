@@ -32,14 +32,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, NGSplitViewControllerDele
         return true
     }
 
-    func splitViewController(splitViewController: NGSplitViewController, willHideMasterViewController viewController: UIViewController) {
+    func splitViewController(splitViewController: NGSplitViewController, didHideMasterViewController viewController: UIViewController) {
         guard let detail = (splitViewController.detailViewController as? UINavigationController)?.topViewController else {
             return
         }
         detail.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Show", style: .Plain, target: self, action: Selector("showMaster"))
     }
     
-    func splitViewController(splitViewController: NGSplitViewController, willShowMasterViewController viewController: UIViewController) {
+    func splitViewController(splitViewController: NGSplitViewController, didShowMasterViewController viewController: UIViewController) {
         guard let detail = (splitViewController.detailViewController as? UINavigationController)?.topViewController else {
             return
         }
