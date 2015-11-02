@@ -1,6 +1,8 @@
 # NGSplitViewController
 A UISplitViewController replacement with a simpler, saner API and no magic.
 
+# Overview
+
 This view controller along with its master and detail view controllers can be created in Interface Builder
 but the relationships must be configured in code. This is as simple as setting the `masterViewController` and
 `detailViewController` properties, and assigning a delegate.
@@ -17,3 +19,8 @@ right margin outside the overlay will also dismiss the overlay.
 
 The precise behaviour of when the master view controller is shown and hidden can be overridden by the
 delegate.
+
+
+# Adding to your project
+
+For now just add `NGSplitViewController.swift` directly to your project. The rest of the project here is simply a testbed and demonstration.
