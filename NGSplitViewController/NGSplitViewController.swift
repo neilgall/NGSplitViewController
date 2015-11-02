@@ -444,6 +444,11 @@ public class NGSplitViewController: UIViewController {
     }
     
     private func crossFadeFromViewController(from: UIViewController, toViewController to: UIViewController) {
+        // Work around odd CAAnimations attached to UINavigationBar causing it to appear misplaced
+        // during the first presentation
+        addChildView(to, withFrame: to.view.frame)
+        removeChildView(to)
+        
         transitionFromViewController(from,
             toViewController: to,
             duration: transitionDuration,
