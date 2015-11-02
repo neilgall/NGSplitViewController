@@ -41,6 +41,7 @@
 		287B23011BDD10AE00DBF3F1 /* NGSplitViewControllerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NGSplitViewControllerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		287B23031BDD10AF00DBF3F1 /* NGSplitViewControllerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NGSplitViewControllerUITests.swift; sourceTree = "<group>"; };
 		287B23051BDD10AF00DBF3F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		71F374621BE80F5D00B9D206 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +65,7 @@
 		284E51201BDA98AC00246375 = {
 			isa = PBXGroup;
 			children = (
+				71F374621BE80F5D00B9D206 /* README.md */,
 				284E512B1BDA98AC00246375 /* NGSplitViewController */,
 				287B23021BDD10AF00DBF3F1 /* NGSplitViewControllerUITests */,
 				284E512A1BDA98AC00246375 /* Products */,
@@ -338,6 +340,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = NGSplitViewController/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.neilgall.NGSplitViewController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -349,6 +352,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = NGSplitViewController/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.neilgall.NGSplitViewController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -407,6 +411,7 @@
 				287B23091BDD10AF00DBF3F1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

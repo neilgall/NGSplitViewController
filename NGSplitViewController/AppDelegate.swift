@@ -31,19 +31,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, NGSplitViewControllerDele
         splitViewController = split
         return true
     }
-
-    func splitViewController(splitViewController: NGSplitViewController, didHideMasterViewController viewController: UIViewController) {
-        guard let detail = (splitViewController.detailViewController as? UINavigationController)?.topViewController else {
-            return
-        }
-        detail.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Show", style: .Plain, target: self, action: Selector("showMaster"))
-    }
     
-    func splitViewController(splitViewController: NGSplitViewController, didShowMasterViewController viewController: UIViewController) {
+    func splitViewController(splitViewController: NGSplitViewController, didChangeMasterViewControllerVisibility viewController: UIViewController) {
         guard let detail = (splitViewController.detailViewController as? UINavigationController)?.topViewController else {
             return
         }
-        detail.navigationItem.leftBarButtonItem = nil
+        if splitViewController.masterViewControllerIsVisible {
+            detail.navigationItem.leftBarButtonItem = nil
+        } else {
+            detail.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Show", style: .Plain, target: self, action: Selector("showMaster"))
+        }
     }
     
     func showMaster() {
