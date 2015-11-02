@@ -24,3 +24,7 @@ delegate.
 # Adding to your project
 
 For now just add `NGSplitViewController.swift` directly to your project. The rest of the project here is simply a testbed and demonstration.
+
+# License
+
+[MIT](http://opensource.org/licenses/MIT)
