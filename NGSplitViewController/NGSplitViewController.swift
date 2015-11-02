@@ -223,6 +223,8 @@ public class NGSplitViewController: UIViewController {
             notifyDelegateOfChangeFromPresentationStyle(oldStyle, toPresentationStyle: presentationStyle)
         }
     }
+    
+    private var animatingMasterOverlay: Bool = false
 
     // -- MARK: UIViewController implementation
     
@@ -237,6 +239,7 @@ public class NGSplitViewController: UIViewController {
     
     public override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+        
         updatePresentationStyleForHorizontalSizeClass(traitCollection.horizontalSizeClass, viewWidth: self.view.bounds.size.width)
         updateFrames()
         updateChildTraitCollections()
@@ -276,7 +279,10 @@ public class NGSplitViewController: UIViewController {
             
         case .DetailOnly:
             // fudge to fix a strange unexpected call to viewWillLayoutSubviews() on the animate-out transition
-            masterFrame = CGRectMake(-320, 0, 320, view.bounds.size.height)
+            if animatingMasterOverlay {
+                masterFrame = CGRectMake(-320, 0, 320, view.bounds.size.height)
+            }
+            break
 
         case .MasterOnly:
             break
@@ -302,6 +308,7 @@ public class NGSplitViewController: UIViewController {
         }
 
         child.view.frame = frame
+        child.view.alpha = 1.0
         view.addSubview(child.view)
         view.setNeedsLayout()
     }
@@ -366,6 +373,7 @@ public class NGSplitViewController: UIViewController {
             return
         }
         
+        animatingMasterOverlay = true
         let frames = containerFrames
         
         let button = UIButton(type: .Custom)
@@ -381,8 +389,12 @@ public class NGSplitViewController: UIViewController {
         UIView.animateWithDuration(transitionDuration,
             delay: 0,
             options: .CurveEaseOut,
-            animations: { master.view.transform = CGAffineTransformIdentity },
-            completion: nil)
+            animations: {
+                master.view.transform = CGAffineTransformIdentity
+            },
+            completion: { _ in
+                self.animatingMasterOverlay = false
+        })
     }
     
     private func animateOutMasterViewControllerOverlay() {
@@ -390,6 +402,7 @@ public class NGSplitViewController: UIViewController {
             return
         }
         
+        animatingMasterOverlay = true
         let frame = containerFrames.master
         
         UIView.animateWithDuration(transitionDuration,
@@ -401,6 +414,7 @@ public class NGSplitViewController: UIViewController {
             completion: { _ in
                 self.overlayHideButton = nil
                 self.removeChildView(master)
+                self.animatingMasterOverlay = false
         })
     }
     
@@ -463,17 +477,23 @@ public class NGSplitViewController: UIViewController {
     }
     
     private func crossFadeFromViewController(from: UIViewController, toViewController to: UIViewController) {
-        // Work around odd CAAnimations attached to UINavigationBar causing it to appear misplaced
-        // during the first presentation
-        addChildView(to, withFrame: to.view.frame)
-        removeChildView(to)
+        from.beginAppearanceTransition(false, animated: true)
+        to.beginAppearanceTransition(true, animated: true)
+        view.insertSubview(to.view, belowSubview: from.view)
+        to.view.alpha = 0.0
         
-        transitionFromViewController(from,
-            toViewController: to,
-            duration: transitionDuration,
-            options: [.CurveEaseInOut, .TransitionCrossDissolve, .LayoutSubviews, .BeginFromCurrentState],
-            animations: {},
-            completion: nil)
+        UIView.animateWithDuration(transitionDuration,
+            delay: 0,
+            options: [.CurveEaseInOut],
+            animations: {
+                to.view.alpha = 1.0
+                from.view.alpha = 0.0
+            },
+            completion: { _ in
+                from.view.removeFromSuperview()
+                from.endAppearanceTransition()
+                to.endAppearanceTransition()
+        })
     }
 }
 
